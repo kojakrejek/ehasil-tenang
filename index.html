@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>e-HASIL FPMSB TENANG</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #f4f6f8; --card-bg: #ffffff; --text-main: #333333; --text-label: #555555;
+      --border-color: #cccccc; --input-bg: #ffffff;
+      --btn-blue: #007bff; --btn-green: #28a745; --btn-gray: #6c757d; --btn-purple: #6f42c1;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body { 
+      font-family: 'Roboto', sans-serif; 
+      padding: 15px; background-color: var(--bg-color); color: var(--text-main); 
+      margin: 0; min-height: 100vh; overscroll-behavior: none;
+      /* Center layout for PC view */
+      display: flex; justify-content: center; 
+    }
+
+    /* Container untuk limit lebar di PC */
+    .app-container {
+      width: 100%; max-width: 480px; 
+      background: var(--bg-color);
+      min-height: 100vh;
+    }
+
+    .header h3 { margin: 10px 0 20px 0; font-size: 20px; font-weight: 700; text-align: center; color: #000; text-transform: uppercase; }
+    .pill { display: block; width: fit-content; margin: 0 auto 20px auto; padding: 4px 12px; border-radius: 4px; background-color: #e2e6ea; color: #333; border: 1px solid #ccc; font-size: 11px; font-weight: bold; letter-spacing: 1px; }
+    
+    .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    
+    label { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 12px; color: var(--text-label); margin-bottom: 5px; text-transform: uppercase; font-weight: 700; }
+    label:first-child { margin-top: 0; }
+    #luasDisplay { color: #155724; font-weight: bold; font-size: 12px; }
+
+    select, input, textarea { width: 100%; padding: 12px; background-color: var(--input-bg); border: 1px solid var(--border-color); border-radius: 4px; font-size: 16px; color: #000; outline: none; font-family: 'Roboto', sans-serif; appearance: none; -webkit-appearance: none; }
+    select:focus, input:focus { border-color: var(--btn-blue); background-color: #fff; }
+
+    .info-status { background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; padding: 10px; margin: 15px 0; display: none; justify-content: space-between; align-items: center; font-size: 12px; color: #155724; }
+    .info-item { text-align: center; width: 45%; }
+    .info-item b { display: block; font-size: 15px; margin-top: 2px; color: #000; }
+    .status-baki.done b { color: #28a745; } .status-baki b { color: #dc3545; }
+
+    #nilai { font-size: 24px; font-weight: bold; text-align: center; color: #000; background-color: #fff; border: 2px solid #ccc; }
+    #nilai:focus { border-color: var(--btn-blue); }
+    #nilai::placeholder { color: #999; font-size: 14px; font-weight: normal; }
+
+    input[type="date"] { position: relative; min-height: 45px; }
+    input[type="date"]::-webkit-calendar-picker-indicator { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; background: transparent; cursor: pointer; }
+    input[type="date"]::after { content: '📅'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.6; }
+
+    .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+    button { width: 100%; padding: 14px; border: none; border-radius: 4px; font-family: 'Roboto', sans-serif; font-weight: bold; font-size: 14px; cursor: pointer; text-transform: uppercase; color: white; touch-action: manipulation; }
+    button:active { opacity: 0.8; }
+    
+    .btn-primary { background-color: var(--btn-blue); }
+    .btn-success { background-color: var(--btn-green); }
+    .btn-secondary { background-color: var(--btn-gray); color: #fff; }
+    .btn-special { background-color: var(--btn-purple); }
+
+    .divider { display: flex; align-items: center; justify-content: center; margin: 25px 0 15px 0; position: relative; }
+    .divider::before { content: ''; position: absolute; width: 100%; height: 1px; background-color: var(--border-color); }
+    .sec-title { background-color: var(--bg-color); padding: 0 10px; font-size: 11px; color: #777; font-weight: bold; z-index: 1; }
+
+    .msg-box { display: none; margin-top: 15px; padding: 10px; border-radius: 4px; text-align: center; font-size: 13px; font-weight: bold; }
+    .msg-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .msg-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .msg-info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+
+    .report-area { margin-top: 15px; display: none; }
+    textarea { font-family: monospace; font-size: 12px; background-color: #eee; color: #333; border: 1px solid #ccc; width:100%; }
+    
+    .reload-icon { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; background: #e2e6ea; border-radius: 4px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; touch-action: manipulation; }
+    
+    /* Loader */
+    #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); display: flex; justify-content: center; align-items: center; z-index: 999; display: none; }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--btn-blue); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <div id="loader"><div class="spinner"></div></div>
+
+  <div class="reload-icon" onclick="onRefresh()" title="Refresh All">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="#555"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+  </div>
+
+  <div class="header">
+    <h3>e-HASIL FPMSB TENANG</h3>
+    <div class="pill" id="modeTag">MODE: TAN</div>
+  </div>
+
+  <div class="card">
+    <label>Pilih Mode</label>
+    <select id="mode" onchange="onModeChange()">
+      <option value="TAN">📊 Input TAN Harian</option>
+      <option value="PUS_TUAI">🚜 Input Hektar Tuai</option>
+    </select>
+
+    <label>Peringkat <span id="luasDisplay"></span></label>
+    <select id="peringkat" onchange="onPeringkatChange()"></select>
+
+    <div id="pickWrap" style="display:none;">
+      <label id="pickTitle">BLOK / TEAM</label>
+      <select id="pick"></select>
+    </div>
+
+    <div id="statusBox" class="info-status">
+       <div class="info-item status-siap">SIAP TUAI <b id="valSiap">0.00 Ha</b></div>
+       <div class="info-divider"></div>
+       <div class="info-item status-baki">BAKI <b id="valBaki">0.00 Ha</b></div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
+      <div>
+        <label>Tarikh</label>
+        <input id="tarikh" type="date" />
+      </div>
+      <div>
+        <label id="nilaiLabel">TAN</label>
+        <input id="nilai" type="text" inputmode="text" placeholder="Contoh: =5.5+5.5" 
+               onfocus="onFocusInput()" onblur="onBlurInput()" />
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn-primary" onclick="onSave()">SIMPAN DATA</button>
+    </div>
+    
+    <div id="msg" class="msg-box msg-info"></div>
+  </div>
+
+  <div class="divider"><span class="sec-title">ADMIN PANEL</span></div>
+
+  <div class="card">
+    <div id="tanActions">
+      <button class="btn-success" onclick="onSaveDataMaster()" style="margin-bottom:12px;">📤 Simpan ke MASTER</button>
+      <button class="btn-secondary" onclick="onRefreshRumusan()" style="margin-bottom:12px;">🔄 Refresh Rumusan Sahaja</button>
+    </div>
+
+    <label style="justify-content:center; opacity:0.7; margin-bottom:12px;">JANA LAPORAN WHATSAPP</label>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+      <button class="btn-secondary" onclick="onGenReport('PO')">📄 PO</button>
+      <button class="btn-secondary" onclick="onGenReport('RUMUSAN')">📄 RUMUSAN</button>
+    </div>
+    <button class="btn-special" onclick="onGenReport('ALL')" style="margin-top:12px;">📑 JANA SEMUA LAPORAN</button>
+
+    <div id="reportResult" class="report-area">
+        <label>Hasil Laporan:</label>
+        <textarea id="reportText" rows="10" readonly onclick="this.select()"></textarea>
+        <button class="btn-success" onclick="copyReport()" style="margin-top:12px;">📋 COPY TEKS</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ==========================================
+  // CONFIGURATION
+  // ==========================================
+  // ⚠️ MASUKKAN URL DEPLOYMENT DI SINI ⚠️
+  const API_URL = "https://script.google.com/macros/s/AKfycbwVFLAyFrrr4FXBkCYJbwXHJ68KzFNrnjU8DRjKiMKv3GydAV6Oe3xEgHwTcyTBk6j18Q/exec"; 
+  // ==========================================
+
+  let CFG = null;
+  let HARVEST_STATS = null;
+  let STORED_FORMULA = "";
+  let IS_SHOWING_RESULT = false;
+
+  async function runApi(action, data = {}) {
+    document.getElementById('loader').style.display = 'flex';
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: action, data: data })
+      });
+      const result = await response.json();
+      document.getElementById('loader').style.display = 'none';
+      return result;
+    } catch (e) {
+      document.getElementById('loader').style.display = 'none';
+      setMsg("❌ Ralat Sambungan: " + e.message, "error");
+      return { ok: false };
+    }
+  }
+
+  function setMsg(t, type="info"){ 
+    const m = document.getElementById('msg');
+    m.textContent = t || ""; 
+    m.className = "msg-box msg-" + (t.includes("✅") ? "success" : t.includes("❌") ? "error" : "info");
+    m.style.display = t ? "block" : "none";
+  }
+  
+  function todayISO() { const d=new Date(); return d.toISOString().split('T')[0]; }
+  function getDay() { const v=document.getElementById('tarikh').value; return v ? Number(v.split('-')[2]) : null; }
+  
+  function onFocusInput() {
+    const el = document.getElementById('nilai');
+    IS_SHOWING_RESULT = false;
+    if (STORED_FORMULA) el.value = STORED_FORMULA;
+  }
+
+  function onBlurInput() {
+    const el = document.getElementById('nilai');
+    let val = el.value.trim();
+    if (!val) { STORED_FORMULA = ""; IS_SHOWING_RESULT = false; return; }
+    val = val.replace(/,/g, '.');
+    STORED_FORMULA = val;
+    if (val.match(/[+\-*\/]/)) {
+        try {
+            let cleanVal = val.replace('=', '');
+            let total = 0;
+            if (cleanVal.includes('+')) { cleanVal.split('+').forEach(p => { let n = parseFloat(p); if(!isNaN(n)) total += n; }); } 
+            else { total = parseFloat(cleanVal); }
+            el.value = total.toFixed(2); IS_SHOWING_RESULT = true; 
+        } catch(e) {}
+    } else {
+        let n = parseFloat(val);
+        if(!isNaN(n)) { el.value = n.toFixed(2); STORED_FORMULA = n.toString(); IS_SHOWING_RESULT = true; }
+    }
+  }
+
+  function getMode(){ return document.getElementById('mode').value; }
+  
+  function renderPeringkatOptions(){
+    const sel = document.getElementById('peringkat');
+    if (!CFG) return;
+    const list = (getMode() === "PUS_TUAI") ? CFG.peringkat.filter(x => x !== "RUMUSAN") : CFG.peringkat;
+    sel.innerHTML = list.map(x => `<option>${x}</option>`).join("");
+    onPeringkatChange();
+  }
+
+  function onModeChange(){
+    const mode = getMode();
+    document.getElementById('modeTag').textContent = "MODE: " + (mode==="TAN"?"TAN":"PUS. TUAI");
+    document.getElementById('nilaiLabel').textContent = mode === "TAN" ? "TAN" : "HEKTAR";
+    document.getElementById('tanActions').style.display = (mode === "TAN") ? "block" : "none";
+    renderPeringkatOptions();
+    document.getElementById('nilai').value = ""; STORED_FORMULA = ""; IS_SHOWING_RESULT = false;
+    setMsg("");
+  }
+
+  function onPeringkatChange(){
+    const p = document.getElementById('peringkat').value;
+    const mode = getMode();
+    const wrap = document.getElementById('pickWrap');
+    if (mode !== "TAN" || p === "PKT001" || p === "RUMUSAN") wrap.style.display = "none";
+    else {
+      wrap.style.display = "block";
+      document.getElementById('pickTitle').textContent = (p === "PKT004") ? "PILIH BLOK" : "PILIH TEAM";
+      const labels = CFG?.labels?.[p] || ["1","2","3","4","5"];
+      document.getElementById('pick').innerHTML = labels.map((t,i) => `<option value="${i}">${t}</option>`).join("");
+    }
+
+    const luasLabel = document.getElementById('luasDisplay');
+    const statusBox = document.getElementById('statusBox');
+    
+    if (HARVEST_STATS && HARVEST_STATS[p]) {
+        const data = HARVEST_STATS[p];
+        const baki = data.luas - data.siap;
+        luasLabel.textContent = `• ${data.luas.toFixed(2)} Ha`;
+        if (mode === "PUS_TUAI") {
+            statusBox.style.display = "flex";
+            document.getElementById('valSiap').textContent = data.siap.toFixed(2) + " Ha";
+            document.getElementById('valBaki').textContent = baki.toFixed(2) + " Ha";
+            const bakiEl = document.querySelector('.status-baki');
+            if (baki <= 0) bakiEl.classList.add('done'); else bakiEl.classList.remove('done');
+        } else { statusBox.style.display = "none"; }
+    } else {
+        luasLabel.textContent = ""; statusBox.style.display = "none";
+    }
+  }
+
+  async function onRefresh(){
+    const res = await runApi('getConfig');
+    if(res) { 
+        CFG = res; 
+        renderPeringkatOptions(); 
+        fetchHarvestData();
+    }
+  }
+
+  async function fetchHarvestData() {
+    const res = await runApi('getHarvestStatus');
+    if(res && res.ok) { HARVEST_STATS = res.stats; onPeringkatChange(); }
+  }
+
+  function getPayload(forLoad=false){
+    let valToSend = "";
+    if (!forLoad) {
+        if (IS_SHOWING_RESULT && STORED_FORMULA) valToSend = STORED_FORMULA;
+        else valToSend = document.getElementById('nilai').value;
+        if (typeof valToSend === 'string' && valToSend.match(/[+\-*\/]/) && !valToSend.trim().startsWith('=')) valToSend = '=' + valToSend;
+    }
+    
+    const base = {
+        peringkat: document.getElementById('peringkat').value,
+        idx: document.getElementById('pickWrap').style.display!=="none" ? document.getElementById('pick').value : "",
+        day: getDay(),
+        fullDate: document.getElementById('tarikh').value
+    };
+
+    if(getMode() === "TAN") base.tan = forLoad ? 0 : valToSend;
+    else { base.tarikh = base.fullDate; base.hektar = forLoad ? 0 : valToSend; }
+    return base;
+  }
+
+  async function onSave(){
+    if (document.activeElement === document.getElementById('nilai')) onBlurInput();
+    const mode = getMode();
+    const action = mode === "TAN" ? 'saveTan' : 'savePusTuai';
+    const res = await runApi(action, getPayload(false));
+    if(res.ok) { setMsg(res.message || "✅ BERJAYA DISIMPAN!", "success"); fetchHarvestData(); } 
+    else { setMsg(res.message || "Ralat", "error"); }
+  }
+
+  async function onSaveDataMaster(){
+    const res = await runApi('saveMaster', { peringkat: document.getElementById('peringkat').value });
+    setMsg(res.message || (res.ok ? "✅ Saved" : "❌ Error"), res.ok ? "success" : "error");
+  }
+
+  async function onRefreshRumusan(){
+    if(document.getElementById('peringkat').value !== "RUMUSAN") { setMsg("❌ PILIH RUMUSAN DAHULU", "error"); return; }
+    const res = await runApi('refreshRumusan', { day: getDay() });
+    if(res.ok) {
+        if(res.tan) {
+            let n = Number(res.tan);
+            document.getElementById('nilai').value = n.toFixed(2);
+            STORED_FORMULA = String(n); IS_SHOWING_RESULT = true;
+        }
+        setMsg("✅ SELESAI", "success");
+    } else setMsg(res.message, "error");
+  }
+
+  async function onGenReport(type){
+    document.getElementById('reportResult').style.display = 'none';
+    const res = await runApi('genReport', type);
+    if(res.ok && res.reportText) {
+        document.getElementById('reportText').value = res.reportText;
+        document.getElementById('reportResult').style.display = 'block';
+        setMsg("✅ LAPORAN DIJANA", "success");
+    } else setMsg(res.message || "Ralat", "error");
+  }
+
+  function copyReport() { 
+    const textArea = document.getElementById("reportText"); 
+    textArea.select(); textArea.setSelectionRange(0, 99999); 
+    try { document.execCommand('copy'); setMsg("✅ DISALIN!", "success"); } catch (err) { setMsg("❌ Salin manual", "error"); } 
+  }
+
+  document.getElementById('tarikh').value = todayISO();
+  onRefresh();
+</script>
+</body>
+</html>
