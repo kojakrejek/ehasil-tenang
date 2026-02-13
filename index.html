@@ -42,7 +42,7 @@
         border-radius: 4px; 
         padding: 10px; 
         margin: 15px 0; 
-        display: none; /* Default sembunyi */
+        display: none; /* Default Hidden */
         justify-content: space-between; 
         align-items: center; 
         font-size: 12px; 
@@ -51,7 +51,6 @@
     .info-item { text-align: center; width: 45%; }
     .info-item b { display: block; font-size: 15px; margin-top: 2px; color: #000; }
     
-    /* INI YANG HILANG SEBELUM NI */
     .info-divider { width: 1px; height: 35px; background-color: #9ccca6; opacity: 0.6; }
 
     .status-baki.done b { color: #28a745; } .status-baki b { color: #dc3545; }
@@ -176,8 +175,8 @@
   // ==========================================
   // CONFIGURATION
   // ==========================================
-  // ⚠️ PASTIKAN URL INI BETUL ⚠️
-  const API_URL = "https://script.google.com/macros/s/AKfycbxBKhqXukiYQS80Y-cx7AB9j_E6WWnH9Ji7Y1Q_zgW2-Sx65G1belssBukCoD73kx-CHA/exec"; 
+  // ⚠️ Guna URL API Anda ⚠️
+  const API_URL = "https://script.google.com/macros/s/AKfycbypOwZlMtPG5Ftt3ogY_WUg43_VyJVEXdbVT_gezmNsNasYewb6S7x80_j-bl1fNja52g/exec"; 
   // ==========================================
 
   // --- HARDCODED CONFIG (RAHSIA INSTANT LOAD) ---
@@ -402,8 +401,13 @@
     else { setMsg(res.message || "Ralat", "error"); }
   }
 
+  // SECURITY PATCH: HANTAR TARIKH KE SAVE MASTER
   async function onSaveDataMaster(){
-    const res = await runApi('saveMaster', { peringkat: document.getElementById('peringkat').value });
+    const payload = {
+        peringkat: document.getElementById('peringkat').value,
+        fullDate: document.getElementById('tarikh').value // Penting!
+    };
+    const res = await runApi('saveMaster', payload);
     setMsg(res.message || (res.ok ? "✅ Saved" : "❌ Error"), res.ok ? "success" : "error");
   }
 
