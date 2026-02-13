@@ -18,16 +18,10 @@
       font-family: 'Roboto', sans-serif; 
       padding: 15px; background-color: var(--bg-color); color: var(--text-main); 
       margin: 0; min-height: 100vh; overscroll-behavior: none;
-      /* Center layout for PC view */
       display: flex; justify-content: center; 
     }
 
-    /* Container untuk limit lebar di PC */
-    .app-container {
-      width: 100%; max-width: 480px; 
-      background: var(--bg-color);
-      min-height: 100vh;
-    }
+    .app-container { width: 100%; max-width: 480px; background: var(--bg-color); min-height: 100vh; position: relative; }
 
     .header h3 { margin: 10px 0 20px 0; font-size: 20px; font-weight: 700; text-align: center; color: #000; text-transform: uppercase; }
     .pill { display: block; width: fit-content; margin: 0 auto 20px auto; padding: 4px 12px; border-radius: 4px; background-color: #e2e6ea; color: #333; border: 1px solid #ccc; font-size: 11px; font-weight: bold; letter-spacing: 1px; }
@@ -55,8 +49,16 @@
     input[type="date"]::after { content: '📅'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.6; }
 
     .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-    button { width: 100%; padding: 14px; border: none; border-radius: 4px; font-family: 'Roboto', sans-serif; font-weight: bold; font-size: 14px; cursor: pointer; text-transform: uppercase; color: white; touch-action: manipulation; }
+    button { width: 100%; padding: 14px; border: none; border-radius: 4px; font-family: 'Roboto', sans-serif; font-weight: bold; font-size: 14px; cursor: pointer; text-transform: uppercase; color: white; touch-action: manipulation; transition: all 0.2s; }
     button:active { opacity: 0.8; }
+    
+    /* DISABLED STATE (SAFETY LOCK) */
+    button:disabled { 
+        background-color: #ccc !important; 
+        color: #666 !important; 
+        cursor: not-allowed; 
+        transform: none;
+    }
     
     .btn-primary { background-color: var(--btn-blue); }
     .btn-success { background-color: var(--btn-green); }
@@ -75,20 +77,21 @@
     .report-area { margin-top: 15px; display: none; }
     textarea { font-family: monospace; font-size: 12px; background-color: #eee; color: #333; border: 1px solid #ccc; width:100%; }
     
-    .reload-icon { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; background: #e2e6ea; border-radius: 4px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; touch-action: manipulation; }
-    
-    /* Loader */
     #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); display: flex; justify-content: center; align-items: center; z-index: 999; display: none; }
     .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--btn-blue); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    .mini-loader { position: absolute; top: 15px; right: 15px; width: 24px; height: 24px; border: 3px solid #ccc; border-top: 3px solid var(--btn-blue); border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+    .reload-icon { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; background: #e2e6ea; border-radius: 4px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; touch-action: manipulation; }
   </style>
 </head>
 <body>
 
 <div class="app-container">
   <div id="loader"><div class="spinner"></div></div>
+  <div class="mini-loader" id="syncIcon"></div>
 
-  <div class="reload-icon" onclick="onRefresh()" title="Refresh All">
+  <div class="reload-icon" id="btnRefresh" onclick="onRefresh()" title="Refresh All">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="#555"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
   </div>
 
@@ -114,7 +117,7 @@
 
     <div id="statusBox" class="info-status">
        <div class="info-item status-siap">SIAP TUAI <b id="valSiap">0.00 Ha</b></div>
-       <div class="info-divider"></div>
+       <div style="width:1px; height:30px; background:#c3e6cb;"></div>
        <div class="info-item status-baki">BAKI <b id="valBaki">0.00 Ha</b></div>
     </div>
 
@@ -126,12 +129,12 @@
       <div>
         <label id="nilaiLabel">TAN</label>
         <input id="nilai" type="text" inputmode="text" placeholder="Contoh: =5.5+5.5" 
-               onfocus="onFocusInput()" onblur="onBlurInput()" />
+               onfocus="onFocusInput()" onblur="onBlurInput()" oninput="checkInput()" />
       </div>
     </div>
 
     <div class="btn-group">
-      <button class="btn-primary" onclick="onSave()">SIMPAN DATA</button>
+      <button id="btnSimpan" class="btn-primary" onclick="onSave()" disabled>SIMPAN DATA</button>
     </div>
     
     <div id="msg" class="msg-box msg-info"></div>
@@ -164,8 +167,8 @@
   // ==========================================
   // CONFIGURATION
   // ==========================================
-  // ⚠️ MASUKKAN URL DEPLOYMENT DI SINI ⚠️
-  const API_URL = "https://script.google.com/macros/s/AKfycbwVFLAyFrrr4FXBkCYJbwXHJ68KzFNrnjU8DRjKiMKv3GydAV6Oe3xEgHwTcyTBk6j18Q/exec"; 
+  // ⚠️ PASTIKAN URL INI BETUL ⚠️
+  const API_URL = "TEPEK_URL_APPS_SCRIPT_DISINI"; 
   // ==========================================
 
   let CFG = null;
@@ -173,19 +176,33 @@
   let STORED_FORMULA = "";
   let IS_SHOWING_RESULT = false;
 
-  async function runApi(action, data = {}) {
-    document.getElementById('loader').style.display = 'flex';
+  async function runApi(action, data = {}, bg = false) {
+    if(!bg) document.getElementById('loader').style.display = 'flex';
+    else {
+        document.getElementById('syncIcon').style.display = 'block';
+        document.getElementById('btnRefresh').style.display = 'none';
+    }
+
     try {
       const response = await fetch(API_URL, {
         method: "POST",
         body: JSON.stringify({ action: action, data: data })
       });
       const result = await response.json();
-      document.getElementById('loader').style.display = 'none';
+      
+      if(!bg) document.getElementById('loader').style.display = 'none';
+      else {
+          document.getElementById('syncIcon').style.display = 'none';
+          document.getElementById('btnRefresh').style.display = 'flex';
+      }
       return result;
     } catch (e) {
-      document.getElementById('loader').style.display = 'none';
-      setMsg("❌ Ralat Sambungan: " + e.message, "error");
+      if(!bg) document.getElementById('loader').style.display = 'none';
+      else {
+          document.getElementById('syncIcon').style.display = 'none';
+          document.getElementById('btnRefresh').style.display = 'flex';
+      }
+      setMsg("❌ Ralat Sambungan. Sila refresh.", "error");
       return { ok: false };
     }
   }
@@ -200,6 +217,18 @@
   function todayISO() { const d=new Date(); return d.toISOString().split('T')[0]; }
   function getDay() { const v=document.getElementById('tarikh').value; return v ? Number(v.split('-')[2]) : null; }
   
+  // --- SAFETY LOCK FUNCTION ---
+  function checkInput() {
+    const val = document.getElementById('nilai').value.trim();
+    const btn = document.getElementById('btnSimpan');
+    // Jika kosong, disable. Jika ada isi, enable.
+    if(val === "") {
+        btn.disabled = true;
+    } else {
+        btn.disabled = false;
+    }
+  }
+
   function onFocusInput() {
     const el = document.getElementById('nilai');
     IS_SHOWING_RESULT = false;
@@ -209,6 +238,8 @@
   function onBlurInput() {
     const el = document.getElementById('nilai');
     let val = el.value.trim();
+    checkInput(); // Re-check button state
+
     if (!val) { STORED_FORMULA = ""; IS_SHOWING_RESULT = false; return; }
     val = val.replace(/,/g, '.');
     STORED_FORMULA = val;
@@ -231,8 +262,13 @@
   function renderPeringkatOptions(){
     const sel = document.getElementById('peringkat');
     if (!CFG) return;
+    const currentVal = sel.value;
     const list = (getMode() === "PUS_TUAI") ? CFG.peringkat.filter(x => x !== "RUMUSAN") : CFG.peringkat;
     sel.innerHTML = list.map(x => `<option>${x}</option>`).join("");
+    // Cuba kekalkan pilihan jika masih wujud dalam list
+    if(currentVal && list.includes(currentVal)) sel.value = currentVal;
+    else sel.selectedIndex = 0;
+    
     onPeringkatChange();
   }
 
@@ -241,8 +277,14 @@
     document.getElementById('modeTag').textContent = "MODE: " + (mode==="TAN"?"TAN":"PUS. TUAI");
     document.getElementById('nilaiLabel').textContent = mode === "TAN" ? "TAN" : "HEKTAR";
     document.getElementById('tanActions').style.display = (mode === "TAN") ? "block" : "none";
+    
+    // Clear nilai bila tukar mode
+    document.getElementById('nilai').value = ""; 
+    STORED_FORMULA = ""; 
+    IS_SHOWING_RESULT = false;
+    checkInput(); // Disable button
+
     renderPeringkatOptions();
-    document.getElementById('nilai').value = ""; STORED_FORMULA = ""; IS_SHOWING_RESULT = false;
     setMsg("");
   }
 
@@ -250,6 +292,13 @@
     const p = document.getElementById('peringkat').value;
     const mode = getMode();
     const wrap = document.getElementById('pickWrap');
+    
+    // Auto Clear bila tukar peringkat
+    document.getElementById('nilai').value = ""; 
+    STORED_FORMULA = ""; 
+    IS_SHOWING_RESULT = false;
+    checkInput(); // Disable button immediately
+
     if (mode !== "TAN" || p === "PKT001" || p === "RUMUSAN") wrap.style.display = "none";
     else {
       wrap.style.display = "block";
@@ -277,18 +326,27 @@
     }
   }
 
-  async function onRefresh(){
-    const res = await runApi('getConfig');
-    if(res) { 
-        CFG = res; 
-        renderPeringkatOptions(); 
-        fetchHarvestData();
-    }
+  function loadCache() {
+    const savedCfg = localStorage.getItem('MY_APP_CFG');
+    const savedStats = localStorage.getItem('MY_APP_STATS');
+    if(savedCfg) { CFG = JSON.parse(savedCfg); renderPeringkatOptions(); }
+    if(savedStats) { HARVEST_STATS = JSON.parse(savedStats); onPeringkatChange(); }
   }
 
-  async function fetchHarvestData() {
-    const res = await runApi('getHarvestStatus');
-    if(res && res.ok) { HARVEST_STATS = res.stats; onPeringkatChange(); }
+  function saveCache(cfg, stats) {
+    if(cfg) localStorage.setItem('MY_APP_CFG', JSON.stringify(cfg));
+    if(stats) localStorage.setItem('MY_APP_STATS', JSON.stringify(stats));
+  }
+
+  async function onRefresh(isBackground = false){
+    const res = await runApi('getInitData', {}, isBackground);
+    if(res && res.ok) { 
+        CFG = res.config; 
+        HARVEST_STATS = res.stats;
+        saveCache(CFG, HARVEST_STATS);
+        renderPeringkatOptions(); 
+        if(!isBackground) setMsg("✅ DATA DIKEMASKINI", "success");
+    }
   }
 
   function getPayload(forLoad=false){
@@ -313,10 +371,15 @@
 
   async function onSave(){
     if (document.activeElement === document.getElementById('nilai')) onBlurInput();
+    
+    // Double check sebelum hantar (Client Side Validation)
+    const val = document.getElementById('nilai').value;
+    if(!val) { setMsg("⚠️ Sila isi nilai dahulu!", "error"); return; }
+
     const mode = getMode();
     const action = mode === "TAN" ? 'saveTan' : 'savePusTuai';
     const res = await runApi(action, getPayload(false));
-    if(res.ok) { setMsg(res.message || "✅ BERJAYA DISIMPAN!", "success"); fetchHarvestData(); } 
+    if(res.ok) { setMsg(res.message || "✅ BERJAYA DISIMPAN!", "success"); onRefresh(true); } 
     else { setMsg(res.message || "Ralat", "error"); }
   }
 
@@ -333,6 +396,7 @@
             let n = Number(res.tan);
             document.getElementById('nilai').value = n.toFixed(2);
             STORED_FORMULA = String(n); IS_SHOWING_RESULT = true;
+            checkInput(); // Enable button if data loaded
         }
         setMsg("✅ SELESAI", "success");
     } else setMsg(res.message, "error");
@@ -355,7 +419,10 @@
   }
 
   document.getElementById('tarikh').value = todayISO();
-  onRefresh();
+  loadCache();
+  onRefresh(true);
+  checkInput(); // Initial check (disable button on load)
+
 </script>
 </body>
 </html>
