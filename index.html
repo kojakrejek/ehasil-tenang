@@ -35,9 +35,25 @@
     select, input, textarea { width: 100%; padding: 12px; background-color: var(--input-bg); border: 1px solid var(--border-color); border-radius: 4px; font-size: 16px; color: #000; outline: none; font-family: 'Roboto', sans-serif; appearance: none; -webkit-appearance: none; }
     select:focus, input:focus { border-color: var(--btn-blue); background-color: #fff; }
 
-    .info-status { background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; padding: 10px; margin: 15px 0; display: none; justify-content: space-between; align-items: center; font-size: 12px; color: #155724; }
+    /* CSS UPDATE: Info Status & Divider */
+    .info-status { 
+        background-color: #d4edda; 
+        border: 1px solid #c3e6cb; 
+        border-radius: 4px; 
+        padding: 10px; 
+        margin: 15px 0; 
+        display: none; /* Default sembunyi */
+        justify-content: space-between; 
+        align-items: center; 
+        font-size: 12px; 
+        color: #155724; 
+    }
     .info-item { text-align: center; width: 45%; }
     .info-item b { display: block; font-size: 15px; margin-top: 2px; color: #000; }
+    
+    /* INI YANG HILANG SEBELUM NI */
+    .info-divider { width: 1px; height: 35px; background-color: #9ccca6; opacity: 0.6; }
+
     .status-baki.done b { color: #28a745; } .status-baki b { color: #dc3545; }
 
     #nilai { font-size: 24px; font-weight: bold; text-align: center; color: #000; background-color: #fff; border: 2px solid #ccc; }
@@ -70,12 +86,10 @@
     .report-area { margin-top: 15px; display: none; }
     textarea { font-family: monospace; font-size: 12px; background-color: #eee; color: #333; border: 1px solid #ccc; width:100%; }
     
-    /* Loader (Hanya keluar bila perlu) */
     #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); display: flex; justify-content: center; align-items: center; z-index: 999; display: none; }
     .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--btn-blue); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     
-    /* Sync Icon (Kecil di bucu) */
     .mini-loader { position: absolute; top: 15px; right: 15px; width: 24px; height: 24px; border: 3px solid #ccc; border-top: 3px solid var(--btn-blue); border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
     .reload-icon { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; background: #e2e6ea; border-radius: 4px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; touch-action: manipulation; }
   </style>
@@ -163,7 +177,7 @@
   // CONFIGURATION
   // ==========================================
   // ⚠️ PASTIKAN URL INI BETUL ⚠️
-  const API_URL = "https://script.google.com/macros/s/AKfycbwVI3KwhDp0tWz0_xk2kxJaCIX41B3zI76EzcGO3vl3IuB4XSBcB3r8a0TNLRS7TyotdA/exec"; 
+  const API_URL = "https://script.google.com/macros/s/AKfycbxBKhqXukiYQS80Y-cx7AB9j_E6WWnH9Ji7Y1Q_zgW2-Sx65G1belssBukCoD73kx-CHA/exec"; 
   // ==========================================
 
   // --- HARDCODED CONFIG (RAHSIA INSTANT LOAD) ---
@@ -291,13 +305,13 @@
     const mode = getMode();
     const wrap = document.getElementById('pickWrap');
     
-    // Auto Clear & Safety Check
+    // Auto Clear bila tukar peringkat
     document.getElementById('nilai').value = ""; 
     STORED_FORMULA = ""; 
     IS_SHOWING_RESULT = false;
     checkInput();
 
-    // Logic Dropdown
+    // Logic Dropdown Blok/Team (Guna Static Data)
     if (mode !== "TAN" || p === "PKT001" || p === "RUMUSAN") wrap.style.display = "none";
     else {
       wrap.style.display = "block";
@@ -306,47 +320,53 @@
       document.getElementById('pick').innerHTML = labels.map((t,i) => `<option value="${i}">${t}</option>`).join("");
     }
 
-    // --- LOGIK BARU: PUSINGAN TUAI (15hb CUT-OFF) ---
+    // --- LOGIK STATUS BOX & SMART CYCLE ---
     const luasLabel = document.getElementById('luasDisplay');
     const statusBox = document.getElementById('statusBox');
     
+    // 1. Tunjuk luas jika data ada
     if (HARVEST_STATS && HARVEST_STATS[p]) {
         const data = HARVEST_STATS[p];
-        luasLabel.textContent = `• ${data.luas.toFixed(2)} Ha`; // Papar luas 1 pusingan
+        luasLabel.textContent = `• ${data.luas.toFixed(2)} Ha`;
         
+        // 2. Jika Mode Input Hektar -> Papar & Kira
         if (mode === "PUS_TUAI") {
-            statusBox.style.display = "flex";
+            statusBox.style.display = "flex"; // PAPARKAN
             
-            // 1. Dapatkan hari dari tarikh yang dipilih
-            const inputDate = document.getElementById('tarikh').value; // Format YYYY-MM-DD
+            const inputDate = document.getElementById('tarikh').value;
             const day = Number(inputDate.split('-')[2]);
             
-            // 2. Tentukan Target (1 Pusingan atau 2 Pusingan)
             let targetHektar = data.luas;
-            
-            // Jika tarikh 16hb ke atas, ATAU siap dah lebih luas (kes laju), target jadi x2
-            // Kita tambah (data.siap > data.luas) supaya kalau dorang laju siap 12hb,
-            // dia automatik tunjuk baki Pusingan 2 walaupun belum 16hb.
+            // Pusingan Pintar (16hb ke atas ATAU siap awal)
             if (day >= 16 || data.siap > data.luas) {
                 targetHektar = data.luas * 2;
             }
 
-            // 3. Kira Baki
             const baki = targetHektar - data.siap;
 
             document.getElementById('valSiap').textContent = data.siap.toFixed(2) + " Ha";
             document.getElementById('valBaki').textContent = baki.toFixed(2) + " Ha";
             
             const bakiEl = document.querySelector('.status-baki');
-            // Hijau jika baki <= 0, Merah jika ada baki
             if (baki <= 0.1) bakiEl.classList.add('done'); else bakiEl.classList.remove('done');
-            
-        } else { 
-            statusBox.style.display = "none"; 
+        } else {
+            statusBox.style.display = "none"; // Mode TAN -> SOROK
         }
     } else {
+        // Jika data belum load
         luasLabel.textContent = ""; 
         statusBox.style.display = "none";
+    }
+  }
+
+  // --- ACTIONS ---
+  async function onRefresh(isBackground = false){
+    // Kita cuma fetch BAKI/LUAS sahaja. Config UI dah hardcoded.
+    const res = await runApi('getHarvestStatus', {}, isBackground);
+    if(res && res.ok) { 
+        HARVEST_STATS = res.stats;
+        onPeringkatChange(); // Update numbers
+        if(!isBackground) setMsg("✅ DATA DIKEMASKINI", "success");
     }
   }
 
