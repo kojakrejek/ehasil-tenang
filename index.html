@@ -2,6 +2,10 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <title>e-HASIL FPMSB TENANG</title>
@@ -177,7 +181,7 @@
   // CONFIGURATION
   // ==========================================
   // ⚠️ Guna URL API Anda ⚠️
-  const API_URL = "https://script.google.com/macros/s/AKfycby_Vi78kqIwp5WHMcjWCjiBPyOgJHhc2_rudbAQ36cifo9xLxma8Hg5J9CSgxjmUvZdcg/exec"; 
+  const API_URL = "https://script.google.com/macros/s/AKfycbxWHYkdAfnEJZEOZI5KgGZvzVDEvP8DNUrOa74IYv7oI-VYmf8IIcegrvGwtm1Ww_xswQ/exec"; 
   // ==========================================
 
   // --- HARDCODED CONFIG (RAHSIA INSTANT LOAD) ---
@@ -323,6 +327,7 @@
     // --- LOGIK BUTTON REFRESH RUMUSAN ---
     const btnRefRumusan = document.getElementById('btnRefRumusan');
     if(btnRefRumusan) btnRefRumusan.style.display = (p === "RUMUSAN") ? "block" : "none";
+    // ------------------------------------------
 
     // --- LOGIK STATUS BOX & SMART CYCLE ---
     const luasLabel = document.getElementById('luasDisplay');
@@ -444,6 +449,15 @@
     const textArea = document.getElementById("reportText"); 
     textArea.select(); textArea.setSelectionRange(0, 99999); 
     try { document.execCommand('copy'); setMsg("✅ DISALIN!", "success"); } catch (err) { setMsg("❌ Salin manual", "error"); } 
+  }
+
+  // --- PWA SERVICE WORKER REGISTRATION (PATCHED) ---
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('✅ Service Worker Registered'))
+        .catch(err => console.log('❌ SW Fail:', err));
+    });
   }
 
   // INITIALIZE (Instant Load)
