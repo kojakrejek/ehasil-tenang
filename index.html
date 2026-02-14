@@ -153,7 +153,8 @@
   <div class="card">
     <div id="tanActions">
       <button class="btn-success" onclick="onSaveDataMaster()" style="margin-bottom:12px;">📤 Simpan ke MASTER</button>
-      <button class="btn-secondary" onclick="onRefreshRumusan()" style="margin-bottom:12px;">🔄 Refresh Rumusan Sahaja</button>
+      
+      <button id="btnRefRumusan" class="btn-secondary" onclick="onRefreshRumusan()" style="margin-bottom:12px; display:none;">🔄 Refresh Rumusan Sahaja</button>
     </div>
 
     <label style="justify-content:center; opacity:0.7; margin-bottom:12px;">JANA LAPORAN WHATSAPP</label>
@@ -176,7 +177,7 @@
   // CONFIGURATION
   // ==========================================
   // ⚠️ Guna URL API Anda ⚠️
-  const API_URL = "https://script.google.com/macros/s/AKfycbzHIqmUp35Ilpx1rJym18yi6w5lR3NORGj_6hTlxTY4vbgeECXGXftZnq7RqevWPFk25g/exec"; 
+  const API_URL = "https://script.google.com/macros/s/AKfycby_Vi78kqIwp5WHMcjWCjiBPyOgJHhc2_rudbAQ36cifo9xLxma8Hg5J9CSgxjmUvZdcg/exec"; 
   // ==========================================
 
   // --- HARDCODED CONFIG (RAHSIA INSTANT LOAD) ---
@@ -304,7 +305,7 @@
     const mode = getMode();
     const wrap = document.getElementById('pickWrap');
     
-    // Auto Clear bila tukar peringkat
+    // Auto Clear & Safety Check
     document.getElementById('nilai').value = ""; 
     STORED_FORMULA = ""; 
     IS_SHOWING_RESULT = false;
@@ -318,6 +319,10 @@
       const labels = STATIC_CFG.labels[p] || ["1","2","3","4","5"];
       document.getElementById('pick').innerHTML = labels.map((t,i) => `<option value="${i}">${t}</option>`).join("");
     }
+
+    // --- LOGIK BUTTON REFRESH RUMUSAN ---
+    const btnRefRumusan = document.getElementById('btnRefRumusan');
+    if(btnRefRumusan) btnRefRumusan.style.display = (p === "RUMUSAN") ? "block" : "none";
 
     // --- LOGIK STATUS BOX & SMART CYCLE ---
     const luasLabel = document.getElementById('luasDisplay');
